@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Normal Mode Logs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4a6bff;
+            --primary-light: #eef1ff;
+            --text: #1a1a1a;
+            --text-light: #666;
+            --bg: #f8f9fa;
+            --border: #e0e0e0;
+            --success: #4caf50;
+            --error: #f44336;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .back-button:hover {
+            background: #3a5bff;
+            transform: translateY(-1px);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: var(--text);
+        }
+
+        .leaderboard {
+            width: 100%;
+            background: var(--white);
+            border-radius: 10px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background-color: var(--primary-light);
+            color: var(--primary);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background-color: rgba(74, 107, 255, 0.02);
+        }
+
+        .energy-cell {
+            font-weight: 600;
+            color: var(--success);
+        }
+
+        .duration-cell {
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-light);
+        }
+
+        .record-actions {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .record-selector {
+            flex: 1;
+            max-width: 300px;
+            position: relative;
+        }
+
+        .export-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1.5rem;
+            background: var(--success);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .export-button:hover:not(:disabled) {
+            background: #3d8b40;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .export-button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .export-button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .select-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .record-dropdown {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            background-color: var(--white);
+            font-size: 1rem;
+            color: var(--text);
+            appearance: none;
+            cursor: pointer;
+            padding-right: 2.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .record-dropdown:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(74, 107, 255, 0.2);
+        }
+
+        .select-wrapper i {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+            pointer-events: none;
+        }
+
+        .leaderboard-container {
+            width: 100%;
+        }
+
+        .leaderboard h2 {
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            color: var(--text);
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            
+            th, td {
+                padding: 0.8rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="index.html" class="back-button">
+                <i class="fas fa-arrow-left"></i>
+                Back to Home
+            </a>
+            <h1>Normal Mode Leaderboard</h1>
+            <div></div> <!-- Empty div for flex spacing -->
+        </div>
+
+        <div class="record-actions">
+            <div class="record-selector">
+                <div class="select-wrapper">
+                    <select id="recordType" class="record-dropdown">
+                        <option value="">Select a record type</option>
+                        <option value="daily">Daily Records</option>
+                        <option value="weekly">Weekly Records</option>
+                        <option value="monthly">Monthly Records</option>
+                        <option value="all">All Records</option>
+                    </select>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+            <button id="exportCsv" class="export-button" disabled>
+                <i class="fas fa-file-export"></i>
+                Export to CSV
+            </button>
+        </div>
+
+        <div class="leaderboard-container">
+            <div class="leaderboard" id="dailyRecords" style="display: none;">
+                <h2>Daily Records</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Duration</th>
+                            <th>Session</th>
+                            <th>Energy</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dailyRecordsBody">
+                        <tr>
+                            <td colspan="5" class="no-data">No daily records available</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="leaderboard" id="weeklyRecords" style="display: none;">
+                <h2>Weekly Records</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Duration</th>
+                            <th>Week</th>
+                            <th>Total Energy</th>
+                        </tr>
+                    </thead>
+                    <tbody id="weeklyRecordsBody">
+                        <tr>
+                            <td colspan="5" class="no-data">No weekly records available</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="leaderboard" id="monthlyRecords" style="display: none;">
+                <h2>Monthly Records</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Duration</th>
+                            <th>Month</th>
+                            <th>Total Energy</th>
+                        </tr>
+                    </thead>
+                    <tbody id="monthlyRecordsBody">
+                        <tr>
+                            <td colspan="5" class="no-data">No monthly records available</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="leaderboard" id="allRecords" style="display: none;">
+                <h2>All Records</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Duration</th>
+                            <th>Date</th>
+                            <th>Energy</th>
+                        </tr>
+                    </thead>
+                    <tbody id="allRecordsBody">
+                        <tr>
+                            <td colspan="5" class="no-data">No records available</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data - replace with actual data from your application
+        const recordsData = {
+            daily: [
+                { name: 'Alex Johnson', duration: '15:42', session: 'Morning', energy: '312.7 Wh', avgSpeed: '32.5 km/h', distance: '8.2 km' },
+                { name: 'Maria Garcia', duration: '18:25', session: 'Afternoon', energy: '356.8 Wh', avgSpeed: '30.1 km/h', distance: '9.1 km' },
+                { name: 'John Smith', duration: '14:58', session: 'Evening', energy: '298.4 Wh', avgSpeed: '33.2 km/h', distance: '8.0 km' },
+                { name: 'Sarah Williams', duration: '16:33', session: 'Morning', energy: '324.1 Wh', avgSpeed: '31.8 km/h', distance: '8.5 km' },
+                { name: 'Robert Brown', duration: '15:12', session: 'Afternoon', energy: '309.6 Wh', avgSpeed: '32.8 km/h', distance: '8.1 km' },
+                { name: 'Emma Davis', duration: '17:08', session: 'Evening', energy: '342.7 Wh', avgSpeed: '29.7 km/h', distance: '9.3 km' },
+                { name: 'Michael Lee', duration: '16:45', session: 'Morning', energy: '335.2 Wh', avgSpeed: '30.5 km/h', distance: '8.7 km' },
+                { name: 'Olivia Wilson', duration: '15:59', session: 'Afternoon', energy: '321.8 Wh', avgSpeed: '31.2 km/h', distance: '8.4 km' },
+                { name: 'James Taylor', duration: '16:22', session: 'Evening', energy: '328.5 Wh', avgSpeed: '30.8 km/h', distance: '8.6 km' },
+                { name: 'Sophia Martinez', duration: '15:15', session: 'Morning', energy: '310.2 Wh', avgSpeed: '32.4 km/h', distance: '8.3 km' },
+            ],
+            weekly: [
+                { name: 'Alex Johnson', duration: '1:48:22', week: 'Week 28 (Jul 7-13)', energy: '2,198.4 Wh', avgSpeed: '32.1 km/h', distance: '58.2 km' },
+                { name: 'Maria Garcia', duration: '1:52:15', week: 'Week 28 (Jul 7-13)', energy: '2,345.6 Wh', avgSpeed: '31.5 km/h', distance: '60.1 km' },
+                { name: 'John Smith', duration: '1:45:38', week: 'Week 28 (Jul 7-13)', energy: '2,156.8 Wh', avgSpeed: '32.8 km/h', distance: '57.3 km' },
+                { name: 'Sarah Williams', duration: '1:51:42', week: 'Week 28 (Jul 7-13)', energy: '2,298.7 Wh', avgSpeed: '31.2 km/h', distance: '59.4 km' },
+                { name: 'Robert Brown', duration: '1:49:15', week: 'Week 28 (Jul 7-13)', energy: '2,234.1 Wh', avgSpeed: '32.0 km/h', distance: '58.7 km' },
+                { name: 'Emma Davis', duration: '1:53:27', week: 'Week 27 (Jun 30-Jul 6)', energy: '2,387.6 Wh', avgSpeed: '30.8 km/h', distance: '61.5 km' },
+                { name: 'Michael Lee', duration: '1:47:52', week: 'Week 27 (Jun 30-Jul 6)', energy: '2,178.3 Wh', avgSpeed: '32.5 km/h', distance: '57.9 km' },
+                { name: 'Olivia Wilson', duration: '1:50:18', week: 'Week 27 (Jun 30-Jul 6)', energy: '2,256.9 Wh', avgSpeed: '31.8 km/h', distance: '58.9 km' },
+            ],
+            monthly: [
+                { name: 'Alex Johnson', duration: '7:45:23', month: 'July 2025', energy: '9,245.6 Wh', avgSpeed: '32.3 km/h', distance: '248.2 km' },
+                { name: 'Maria Garcia', duration: '8:12:45', month: 'July 2025', energy: '9,787.3 Wh', avgSpeed: '31.5 km/h', distance: '267.8 km' },
+                { name: 'John Smith', duration: '7:38:32', month: 'July 2025', energy: '9,065.8 Wh', avgSpeed: '32.7 km/h', distance: '243.5 km' },
+                { name: 'Sarah Williams', duration: '8:08:11', month: 'July 2025', energy: '9,476.2 Wh', avgSpeed: '31.8 km/h', distance: '256.9 km' },
+                { name: 'Robert Brown', duration: '7:52:44', month: 'July 2025', energy: '9,342.9 Wh', avgSpeed: '32.1 km/h', distance: '251.7 km' },
+                { name: 'Emma Davis', duration: '8:22:36', month: 'July 2025', energy: '9,654.1 Wh', avgSpeed: '31.2 km/h', distance: '269.3 km' },
+                { name: 'Michael Lee', duration: '7:49:18', month: 'July 2025', energy: '9,178.5 Wh', avgSpeed: '32.5 km/h', distance: '247.8 km' },
+                { name: 'Olivia Wilson', duration: '8:05:47', month: 'July 2025', energy: '9,412.6 Wh', avgSpeed: '31.7 km/h', distance: '253.1 km' },
+            ],
+            all: [
+                { name: 'Alex Johnson', duration: '15:42', date: '2025-07-14', energy: '312.7 Wh', session: 'Morning', avgSpeed: '32.5 km/h', distance: '8.2 km' },
+                { name: 'Maria Garcia', duration: '18:25', date: '2025-07-14', energy: '356.8 Wh', session: 'Afternoon', avgSpeed: '30.1 km/h', distance: '9.1 km' },
+                { name: 'John Smith', duration: '14:58', date: '2025-07-14', energy: '298.4 Wh', session: 'Evening', avgSpeed: '33.2 km/h', distance: '8.0 km' },
+                { name: 'Sarah Williams', duration: '16:33', date: '2025-07-13', energy: '324.1 Wh', session: 'Morning', avgSpeed: '31.8 km/h', distance: '8.5 km' },
+                { name: 'Robert Brown', duration: '15:12', date: '2025-07-13', energy: '309.6 Wh', session: 'Afternoon', avgSpeed: '32.8 km/h', distance: '8.1 km' },
+                { name: 'Emma Davis', duration: '17:08', date: '2025-07-13', energy: '342.7 Wh', session: 'Evening', avgSpeed: '29.7 km/h', distance: '9.3 km' },
+                { name: 'Michael Lee', duration: '16:45', date: '2025-07-12', energy: '335.2 Wh', session: 'Morning', avgSpeed: '30.5 km/h', distance: '8.7 km' },
+                { name: 'Olivia Wilson', duration: '15:59', date: '2025-07-12', energy: '321.8 Wh', session: 'Afternoon', avgSpeed: '31.2 km/h', distance: '8.4 km' },
+                { name: 'James Taylor', duration: '16:22', date: '2025-07-12', energy: '328.5 Wh', session: 'Evening', avgSpeed: '30.8 km/h', distance: '8.6 km' },
+                { name: 'Sophia Martinez', duration: '15:15', date: '2025-07-11', energy: '310.2 Wh', session: 'Morning', avgSpeed: '32.4 km/h', distance: '8.3 km' },
+                { name: 'William Anderson', duration: '17:33', date: '2025-07-11', energy: '348.7 Wh', session: 'Afternoon', avgSpeed: '30.2 km/h', distance: '9.2 km' },
+                { name: 'Ava Thomas', duration: '16:48', date: '2025-07-11', energy: '337.5 Wh', session: 'Evening', avgSpeed: '31.0 km/h', distance: '8.8 km' },
+                { name: 'Noah Jackson', duration: '15:27', date: '2025-07-10', energy: '315.8 Wh', session: 'Morning', avgSpeed: '32.1 km/h', distance: '8.4 km' },
+            ]
+        };
+
+        // Function to populate a table with data
+        function populateTable(containerId, data, columns) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            const tbody = container.querySelector('tbody');
+            if (!tbody) return;
+            
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="${columns.length + 1}" class="no-data">No records available</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = data.map((item, index) => {
+                let row = `<tr><td>${index + 1}</td>`;
+                columns.forEach(col => {
+                    const value = item[col.key] || '';
+                    const cellClass = col.key === 'energy' ? 'energy-cell' : col.key === 'duration' ? 'duration-cell' : '';
+                    row += `<td class="${cellClass}">${value}</td>`;
+                });
+                row += '</tr>';
+                return row;
+            }).join('');
+        }
+
+        // Function to show the selected record type
+        function showRecordType(type) {
+            // Hide all tables first
+            document.querySelectorAll('.leaderboard').forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            // Show the selected table
+            const selectedTable = document.getElementById(`${type}Records`);
+            if (selectedTable) {
+                selectedTable.style.display = 'block';
+            }
+            
+            // Populate the table with data
+            switch(type) {
+                case 'daily':
+                    populateTable('dailyRecordsBody', recordsData.daily, [
+                        { key: 'name' },
+                        { key: 'duration' },
+                        { key: 'session' },
+                        { key: 'energy' }
+                    ]);
+                    break;
+                case 'weekly':
+                    populateTable('weeklyRecordsBody', recordsData.weekly, [
+                        { key: 'name' },
+                        { key: 'duration' },
+                        { key: 'week' },
+                        { key: 'energy' }
+                    ]);
+                    break;
+                case 'monthly':
+                    populateTable('monthlyRecordsBody', recordsData.monthly, [
+                        { key: 'name' },
+                        { key: 'duration' },
+                        { key: 'month' },
+                        { key: 'energy' }
+                    ]);
+                    break;
+                case 'all':
+                    populateTable('allRecordsBody', recordsData.all, [
+                        { key: 'name' },
+                        { key: 'duration' },
+                        { key: 'date' },
+                        { key: 'energy' }
+                    ]);
+                    break;
+            }
+        }
+
+        // Function to convert table data to CSV format
+        function convertToCSV(data, columns) {
+            // Create headers
+            const headers = ['Rank', ...columns.map(col => col.header || col.key)];
+            
+            // Create CSV rows
+            const rows = data.map((item, index) => {
+                const row = [index + 1];
+                columns.forEach(col => {
+                    // Format the value for CSV (escape quotes and wrap in quotes if needed)
+                    let value = item[col.key] || '';
+                    if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
+                        value = `"${value.replace(/"/g, '""')}"`;
+                    }
+                    row.push(value);
+                });
+                return row.join(',');
+            });
+            
+            // Combine headers and rows
+            return [headers.join(','), ...rows].join('\n');
+        }
+        
+        // Function to trigger CSV download
+        function downloadCSV(csv, filename) {
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+        
+        // Function to get current table data and columns
+        function getCurrentTableData() {
+            const recordType = document.getElementById('recordType').value;
+            if (!recordType) return null;
+            
+            let data, columns;
+            
+            switch(recordType) {
+                case 'daily':
+                    data = recordsData.daily;
+                    columns = [
+                        { key: 'name', header: 'Name' },
+                        { key: 'duration', header: 'Duration' },
+                        { key: 'session', header: 'Session' },
+                        { key: 'energy', header: 'Energy (Wh)' }
+                    ];
+                    break;
+                case 'weekly':
+                    data = recordsData.weekly;
+                    columns = [
+                        { key: 'name', header: 'Name' },
+                        { key: 'duration', header: 'Duration' },
+                        { key: 'week', header: 'Week' },
+                        { key: 'energy', header: 'Total Energy (Wh)' }
+                    ];
+                    break;
+                case 'monthly':
+                    data = recordsData.monthly;
+                    columns = [
+                        { key: 'name', header: 'Name' },
+                        { key: 'duration', header: 'Duration' },
+                        { key: 'month', header: 'Month' },
+                        { key: 'energy', header: 'Total Energy (Wh)' }
+                    ];
+                    break;
+                case 'all':
+                    data = recordsData.all;
+                    columns = [
+                        { key: 'name', header: 'Name' },
+                        { key: 'duration', header: 'Duration' },
+                        { key: 'date', header: 'Date' },
+                        { key: 'energy', header: 'Energy (Wh)' }
+                    ];
+                    break;
+                default:
+                    return null;
+            }
+            
+            return { data, columns, type: recordType };
+        }
+        
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            const recordTypeSelect = document.getElementById('recordType');
+            const exportButton = document.getElementById('exportCsv');
+            
+            // Show the first option by default if select exists
+            if (recordTypeSelect) {
+                showRecordType('daily');
+                
+                // Handle dropdown change
+                recordTypeSelect.addEventListener('change', (e) => {
+                    const type = e.target.value;
+                    showRecordType(type);
+                    exportButton.disabled = !type;
+                });
+            }
+            
+            // Handle export button click
+            if (exportButton) {
+                exportButton.addEventListener('click', () => {
+                    const tableData = getCurrentTableData();
+                    if (!tableData) return;
+                    
+                    const { data, columns, type } = tableData;
+                    if (!data.length) {
+                        alert('No data to export');
+                        return;
+                    }
+                    
+                    const csv = convertToCSV(data, columns);
+                    const filename = `gym_records_${type}_${new Date().toISOString().split('T')[0]}.csv`;
+                    downloadCSV(csv, filename);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
